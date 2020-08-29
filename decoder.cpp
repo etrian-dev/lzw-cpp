@@ -19,6 +19,13 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
             cout << "decoder: reset dictionary\n";
             dict.clear();
             maxcode = reset_dict_dec(dict);
+            
+            //cout << "prev_buf = \"" << prev_buf << "\"\n";
+            
+            // clear decoder buffer, because the encoder's buffer is resetted
+            prev_buf.clear();
+            // skip this iteration: read a new code
+            continue;
         }
 
         /*

@@ -57,6 +57,10 @@ void encode(ifstream &input, ofstream &out_bin) // input is a text file, output 
 
             dict.clear();
             code = reset_dict_enc(dict);
+            //cout << "buffer = \"" << buffer << "\"\n";
+            
+            // reset the buffer to the current character (as if after adding an entry)
+            buffer = c;
         }
     }
 

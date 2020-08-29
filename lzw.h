@@ -6,6 +6,10 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <limits> // for numeric limits of codetype
+
+// defines a codetype
+typedef uint16_t CodeType;
 
 using namespace std;
 
@@ -13,3 +17,5 @@ using namespace std;
 
 void encode(ifstream &input, ofstream &out_bin);
 void decode(ifstream& input, ofstream& output);
+CodeType reset_dict_enc(unordered_map<string, CodeType> &dictionary);
+CodeType reset_dict_dec(unordered_map<CodeType, string> &dictionary);
