@@ -1,4 +1,4 @@
-// lzw encoder/decoder
+// lzw encoder/decoder entry point
 
 #include "lzw.h"
 
@@ -6,22 +6,28 @@ string ext_replace(string &file, const char *extension);
 
 int main(int argc, char** argv) {
 
-    if(argc > 1) {
-        string in_filename = argv[1];
+    if(argc > 2) {
+        ifstream in_file;
+        ofstream out_file;
+
+        string in_filename = argv[2];
+        string out_filename;
+
+#ifdef DEBUG
 
         // open the file containing in binary mode
-        ifstream in_file("testcases/plaintext/" + in_filename, ios_base::binary);
+        in_file.open("testcases/plaintext/" + in_filename, ios_base::binary);
         if(!in_file.is_open()) {
             cout << "Cannot open input file \"" << in_filename << "\"\n";
-            return 2;
+            return 1;
         }
 
         // generate the compressed file with a .lzw extension
-        string compressed_file = ext_replace(in_filename, "lzw");
-        ofstream out_file("testcases/encoded/" + compressed_file, ios_base::binary);
+        out_filename = ext_replace(in_filename, "lzw");
+        out_file.open("testcases/encoded/" + out_filename, ios_base::binary);
         if(!out_file.is_open()) {
-            cout << "Cannot open output file \"" << compressed_file << "\"\n";
-            return 3;
+            cout << "Cannot open output file \"" << out_filename << "\"\n";
+            return 2;
         }
 
         cout << "encoding \"" << in_filename << "\"...\n";
@@ -32,17 +38,78 @@ int main(int argc, char** argv) {
         out_file.close();
 
         // open compressed file  and decoded output files in binary mode
-        in_file.open("testcases/encoded/" + compressed_file, ios_base::binary);
+        in_file.open("testcases/encoded/" + out_filename, ios_base::binary);
 
         in_filename = ext_replace(in_filename, "decoded");
         out_file.open("testcases/decoded/" + in_filename, ios_base::binary);
 
-        cout << "decoding \"" << compressed_file << "\" => \"" << in_filename << "\"\n";
+        cout << "decoding \"" << out_filename << "\" => \"" << in_filename << "\"\n";
         decode(in_file, out_file);
+
+#else
+
+        // open in_file and encode it in out_file
+        in_file.open(in_filename, ios_base::binary);
+        if(!in_file.is_open()) {
+            cout << "Cannot open input file\n";
+            return 1;
+        }
+
+        string first_ln;
+
+        if(argv[1][1] == 'c') {
+            // output file of encoding is a .lzw file
+            out_filename = ext_replace(in_filename, "lzw");
+            out_file.open(out_filename, ios_base::binary);
+            if(!out_file.is_open()) {
+                cout << "Cannot create output file\n";
+                return 2;
+            }
+
+            /*
+             * the filename is actually written as the first line
+             * of the compressed file, so that it can be reconstructed while decompressing
+             */
+            first_ln = in_filename + "\n";
+            out_file.write(first_ln.data(), first_ln.size());
+
+            cout << "encode \"" << in_filename << "\" into \"" << out_filename << "\"\n";
+
+            // then the files are sent to the encoder
+            encode(in_file, out_file);
+        }
+        else if(argv[1][1] == 'd') {
+            // read the original filename first: it is the first line
+            char c;
+            while(in_file.read(&c, sizeof(c)) && (c != '\n')) {
+                first_ln += c;
+            }
+
+            out_filename = first_ln;
+
+            out_file.open(out_filename, ios_base::binary);
+            if(!out_file.is_open()) {
+                cout << "Cannot create output file\n";
+                return 2;
+            }
+
+            cout << "decode \"" << in_filename << "\" into \"" << out_filename << "\"\n";
+
+            // then the files are sent to the decoder
+            decode(in_file, out_file);
+        }
+        // the option specified is neither -c or -d
+        else {
+            cout << "Option " << argv[1] << " not recognized\nUsage: ./lzw [-c|-d] [file]\n";
+            return 3;
+        }
+
+#endif
+
     }
     else {
-        cout << "No parameters provided\nUsage: ./lzw [file]\n";
-        return 1;
+        cout << "No parameters provided\nUsage: ./lzw [-c|-d] [file]\n";
+        return 4;
     }
     return 0;
 }
