@@ -49,8 +49,9 @@ void encode(ifstream &input, ofstream &out_bin) // input is a text file, output 
         }
 
         // if needed rebuild the dictionary
-        if(static_cast<CodeType>(dict.size()) == numeric_limits<CodeType>::max()) {
-            cout << "encoder: reset dictionary\n";
+        if(static_cast<CodeType>(dict.size()) == numeric_limits<CodeType>::max())
+        {
+            //cout << "encoder: reset dictionary\n";
             code = numeric_limits<CodeType>::max();
             // writes the max value for codetype to out_bin
             out_bin.write(reinterpret_cast<char *>(&code), sizeof(CodeType));
@@ -58,7 +59,7 @@ void encode(ifstream &input, ofstream &out_bin) // input is a text file, output 
             dict.clear();
             code = reset_dict_enc(dict);
             //cout << "buffer = \"" << buffer << "\"\n";
-            
+
             // reset the buffer to the current character (as if after adding an entry)
             buffer = c;
         }

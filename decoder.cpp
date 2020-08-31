@@ -15,13 +15,14 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
     while (input.read(reinterpret_cast<char *>(&code), sizeof(code)))
     {
         // maximum value for CodeType triggers reset of the dictionary
-        if(code == numeric_limits<CodeType>::max()) {
-            cout << "decoder: reset dictionary\n";
+        if(code == numeric_limits<CodeType>::max())
+        {
+            //cout << "decoder: reset dictionary\n";
             dict.clear();
             maxcode = reset_dict_dec(dict);
-            
+
             //cout << "prev_buf = \"" << prev_buf << "\"\n";
-            
+
             // clear decoder buffer, because the encoder's buffer is resetted
             prev_buf.clear();
             // skip this iteration: read a new code
@@ -35,7 +36,8 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
         * happens only in patterns like cScScS
         * so the pattern to be added is prev_buf + prev_buf[0]
         */
-        if(code == dict.size()) {
+        if(code == dict.size())
+        {
             dict[code] = prev_buf + prev_buf[0];
         }
 
@@ -47,7 +49,8 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
         * only one char is read and it MUST be in the dict
         * so it MUST NOT be updated when decoding
         */
-        if(!prev_buf.empty()) {
+        if(!prev_buf.empty())
+        {
             /*
             * maps the next available code to prev_buf (root) and
             * the first character of the code read (that is, the charater
