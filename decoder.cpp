@@ -1,20 +1,24 @@
 // lzw decoder
 #include "lzw.h"
 
-void decode(ifstream &input, ofstream &output) // input is a binary file, output a text file
+// input is a binary file, output a text file
+int decode(ifstream& input, ofstream& output)
 {
     // the dictionary where strings are stored
     unordered_map<CodeType, string> dict;
-
-    string prev_buf;
-    CodeType code;
-    // dict is initialized and its size returned
+    // dict is initialized to the ascii character set 
+    // and its size returned
     CodeType maxcode = reset_dict_dec(dict);
 
-    // read input file code by code
+    // utility variables
+    string prev_buf;
+    CodeType code;
+
+    // read input file code by code (binary mode)
+    // read() writes to a char*, hence the cast
     while (input.read(reinterpret_cast<char *>(&code), sizeof(code)))
     {
-        // maximum value for CodeType triggers reset of the dictionary
+        // maximum value for CodeType triggers the reset of the dictionary
         if(code == numeric_limits<CodeType>::max())
         {
             //cout << "decoder: reset dictionary\n";
@@ -23,17 +27,17 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
 
             //cout << "prev_buf = \"" << prev_buf << "\"\n";
 
-            // clear decoder buffer, because the encoder's buffer is resetted
+            // clear decoder buffer, because the encoder's buffer is resetted as well
             prev_buf.clear();
-            // skip this iteration: read a new code
+            // skip the rest of this iteration: read a new code
             continue;
         }
 
         /*
-        * special case:
-        the code read is the one that must be added
+        * SPECIAL CASE:
+        * The code read is the one that must be added in this iteration
         * so the dictionary must be updated before outputting any code
-        * happens only in patterns like cScScS
+        * happens only in patterns like cScScS...
         * so the pattern to be added is prev_buf + prev_buf[0]
         */
         if(code == dict.size())
@@ -41,13 +45,14 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
             dict[code] = prev_buf + prev_buf[0];
         }
 
-        // output (as plaintext) the string corresponding to the code read
+        // write (as plaintext) the string corresponding to the code read
+        // stored in the dictionary
         output.write(dict[code].data(), dict[code].size());
 
         /*
         * the first iteration skips the rebuilding of the dict:
-        * only one char is read and it MUST be in the dict
-        * so it MUST NOT be updated when decoding
+        * A single character is read, then it's in the dictionary's base set
+        * and the dictionary then needs no updating (otherwise it will be out of sync)
         */
         if(!prev_buf.empty())
         {
@@ -60,9 +65,10 @@ void decode(ifstream &input, ofstream &output) // input is a binary file, output
             dict[maxcode++] = prev_buf + dict[code][0];
         }
 
-        // update prev_buf to the correspondent sequence matched by the encoder
+        // update prev_buf to the sequence that is referred by code
         prev_buf = dict[code];
     }
 
     cout << "file decoded\n";
+    return 0;
 }

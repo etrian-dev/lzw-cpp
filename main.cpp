@@ -1,12 +1,18 @@
-// lzw encoder/decoder entry point
+/*  LZW encoder/decoder to compress files
+    Usage: lzw [-c|-d] [FILENAME]
+*/
 
+// my header that defines the encoder and decoder functions
 #include "lzw.h"
 
+// utility to replace the extension of the file with the one passed as input
 string ext_replace(string &file, const char *extension);
 
+/* Main */
 int main(int argc, char** argv)
 {
-
+    // If the program recevied at least two args
+    // then the second is the input file (either for encoding or decoding)
     if(argc > 2)
     {
         ifstream in_file;
@@ -17,7 +23,7 @@ int main(int argc, char** argv)
 
 #ifdef DEBUG
 
-        // open the file containing in binary mode
+        // open the file in binary mode
         in_file.open("testcases/plaintext/" + in_filename, ios_base::binary);
         if(!in_file.is_open())
         {
@@ -25,7 +31,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        // generate the compressed file with a .lzw extension
+        // generate the compressed file: the original filename with a .lzw extension
         out_filename = ext_replace(in_filename, "lzw");
         out_file.open("testcases/encoded/" + out_filename, ios_base::binary);
         if(!out_file.is_open())
@@ -34,25 +40,37 @@ int main(int argc, char** argv)
             return 2;
         }
 
+        // print the operation, just a useful visual feedback
         cout << "encoding \"" << in_filename << "\"...\n";
-        encode(in_file, out_file);
+
+        // encode the in_file to out_file
+        if (encode(in_file, out_file) != 0) {
+            cout << "Encoder error!\n";
+        }
 
         // close input file and output file
         in_file.close();
         out_file.close();
 
-        // open compressed file  and decoded output files in binary mode
+        // open the compressed file in binary mode
         in_file.open("testcases/encoded/" + out_filename, ios_base::binary);
-
+        // generate a .decoded file in binary mode
         in_filename = ext_replace(in_filename, "decoded");
         out_file.open("testcases/decoded/" + in_filename, ios_base::binary);
 
         cout << "decoding \"" << out_filename << "\" => \"" << in_filename << "\"\n";
-        decode(in_file, out_file);
 
+        // decode the encoded file in the output file
+        if (decode(in_file, out_file) != 0) {
+            cout << "Decoder error!\n";
+        }
 #else
+        /**********************************************************************
+         *  Normal Mode. The -c flag triggers encode mode,
+         *  the -d flag the decode mode. At least one filename must be specified
+         **********************************************************************/
 
-        // open in_file and encode it in out_file
+         // open in_file in binary mode or output error message
         in_file.open(in_filename, ios_base::binary);
         if(!in_file.is_open())
         {
@@ -85,7 +103,10 @@ int main(int argc, char** argv)
             cout << "encode \"" << in_filename << "\" into \"" << out_filename << "\"\n";
 
             // then the files are sent to the encoder
-            encode(in_file, out_file);
+            if (encode(in_file, out_file) != 0) {
+                cout << "Error while encoding \"" << in_filename << "\"\n";
+                return 1;
+            }
         }
         else if(argv[1][1] == 'd')
         {
@@ -108,7 +129,10 @@ int main(int argc, char** argv)
             cout << "decode \"" << in_filename << "\" into \"" << out_filename << "\"\n";
 
             // then the files are sent to the decoder
-            decode(in_file, out_file);
+            if (decode(in_file, out_file) != 0) {
+                cout << "Error while encoding \"" << in_filename << "\"\n";
+                return 1;
+            }
         }
         // the option specified is neither -c or -d
         else
@@ -128,6 +152,9 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/* utility function used to replace the extension with the one provided
+   as an argument (even if the original file had no extension at all)
+*/
 string ext_replace(string &file, const char *extension)
 {
     string file_ext;
