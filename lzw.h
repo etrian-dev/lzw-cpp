@@ -1,4 +1,5 @@
-// header file lzw encoder/decoder
+#ifndef LZW_H_INCLUDED
+#define LZW_H_INCLUDED
 
 // standard lib header file
 #include <iostream>
@@ -20,3 +21,5 @@ int encode(ifstream& input, ofstream& out_bin);
 int decode(ifstream& input, ofstream& output);
 CodeType reset_dict_enc(unordered_map<string, CodeType> &dictionary);
 CodeType reset_dict_dec(unordered_map<CodeType, string> &dictionary);
+
+#endif
